@@ -3,7 +3,9 @@ import pandas as pd
 import sys
 import math
 import collections
-import tensorflow as tf
+import tensorflow.compat.v1 as tf 
+tf.disable_v2_behavior()
+
 import argparse
 import timeit
 run_time = timeit.default_timer()
@@ -100,13 +102,13 @@ def initialize_parameters(nf, ln1, ln2, ln3, nt):
     # input -- nf (# of features), ln1 (# nodes in layer1), ln2 (# nodes in layer2), nt (# types)
     # output -- a dictionary of tensors containing W1, b1, W2, b2, W3, b3
     tf.set_random_seed(3) # set seed to make the results consistant
-    W1 = tf.get_variable("W1", [ln1, nf], initializer = tf.contrib.layers.xavier_initializer(seed = 3))
+    W1 = tf.get_variable("W1", [ln1, nf], initializer = tf.keras.initializers.glorot_normal(seed = 3))
     b1 = tf.get_variable("b1", [ln1, 1], initializer = tf.zeros_initializer())
-    W2 = tf.get_variable("W2", [ln2, ln1], initializer = tf.contrib.layers.xavier_initializer(seed = 3))
+    W2 = tf.get_variable("W2", [ln2, ln1], initializer = tf.keras.initializers.glorot_normal(seed = 3))
     b2 = tf.get_variable("b2", [ln2, 1], initializer = tf.zeros_initializer())
-    W3 = tf.get_variable("W3", [ln3, ln2], initializer = tf.contrib.layers.xavier_initializer(seed = 3))
+    W3 = tf.get_variable("W3", [ln3, ln2], initializer = tf.keras.initializers.glorot_normal(seed = 3))
     b3 = tf.get_variable("b3", [ln3, 1], initializer = tf.zeros_initializer())
-    W4 = tf.get_variable("W4", [nt, ln3], initializer = tf.contrib.layers.xavier_initializer(seed = 3))
+    W4 = tf.get_variable("W4", [nt, ln3], initializer = tf.keras.initializers.glorot_normal(seed = 3))
     b4 = tf.get_variable("b4", [nt, 1], initializer = tf.zeros_initializer())
     parameters = {"W1": W1, "b1": b1, "W2": W2, "b2": b2, "W3": W3, "b3": b3, "W4": W4, "b4": b4}
     return parameters
@@ -237,7 +239,7 @@ def predict_probability(X, parameters):
     params = {"W1": W1, "b1": b1, "W2": W2, "b2": b2, "W3": W3, "b3": b3, "W4": W4, "b4": b4}
     x = tf.placeholder("float")
     z4 = forward_propagation_for_predict(x, params)
-    p = tf.nn.softmax(z4, axis=0)
+    p = tf.exp(z4) / tf.reduce_sum(tf.exp(z4), 0)
     sess = tf.Session()
     prediction = sess.run(p, feed_dict = {x: X})
     return prediction
